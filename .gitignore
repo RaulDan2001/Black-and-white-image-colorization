@@ -1,0 +1,8 @@
+# ignore dotenv files
+.env
+*.env
+
+# ignore common virtualenv folders
+venv/
+.venv/
+env/

@@ -6,7 +6,6 @@ import subprocess
 import numpy as np
 import cv2
 import math
-import pandas as pd
 from html import escape
 from pathlib import Path
 
@@ -121,7 +120,7 @@ def main(args):
     # Load model
     try:
         net = cv2.dnn.readNetFromCaffe(str(prototxt), str(caffemodel))
-    except cv2.error as e:
+    except cv2.error:
         print("OpenCV failed to load the Caffe model. Paths used:")
         print(" prototxt:", str(prototxt))
         print(" caffemodel:", str(caffemodel))
@@ -133,25 +132,10 @@ def main(args):
     net.getLayer(net.getLayerId("conv8_313_rh")).blobs = [np.full([1, 313], args.conv8_scale, dtype="float32")]
 
     run_id = time.strftime("%Y%m%d-%H%M%S")
-    metadata = {
-        "run_id": run_id,
-        "timestamp": time.ctime(),
-        "git_commit": subprocess.getoutput("git rev-parse --short HEAD"),
-        "prototxt": str(prototxt),
-        "prototxt_sha256": file_sha256(str(prototxt)),
-        "caffemodel": str(caffemodel),
-        "caffemodel_sha256": file_sha256(str(caffemodel)),
-        "pts": str(pts),
-        "pts_sha256": file_sha256(str(pts)),
-        "l_offset": args.l_offset,
-        "model_input_size": f"{args.size[0]}x{args.size[1]}",
-        "conv8_scale": args.conv8_scale
-    }
-    pd.DataFrame([metadata]).to_csv(outdir / f"{run_id}_metadata.csv", index=False)
 
     image_files = [f for f in sorted(os.listdir(image_folder)) if f.lower().endswith(('.jpg','.jpeg','.png','.bmp','.tiff'))]
-    logs = []
 
+    # Prepare simple HTML gallery (no metadata)
     html_lines = [
         "<!doctype html>",
         "<html><head><meta charset='utf-8'><title>Colorization results</title></head><body>",
@@ -182,15 +166,6 @@ def main(args):
         out_path = imgs_outdir / out_fname
         cv2.imwrite(str(out_path), pair)
 
-        logs.append({
-            "image": fname,
-            "pair_image": out_fname,
-            "colorfulness": cf,
-            "mean_saturation": ms,
-            "mean_chroma": mc,
-            "chroma_entropy": ce,
-            "time_s": elapsed
-        })
         html_lines.append(
             "<tr>"
             f"<td>{escape(fname)}</td>"
@@ -204,14 +179,13 @@ def main(args):
         )
         print(f"[{fname}] colorfulness={cf:.3f} sat={ms:.3f} chroma={mc:.3f} time={elapsed:.3f}s")
 
-    df = pd.DataFrame(logs)
-    df.to_csv(outdir / f"{run_id}_metrics.csv", index=False)
     html_lines.append("</table></body></html>")
-    with open(outdir / f"{run_id}_gallery.html", "w", encoding="utf-8") as f:
+    gallery_path = outdir / f"{run_id}_gallery.html"
+    with open(gallery_path, "w", encoding="utf-8") as f:
         f.write("\n".join(html_lines))
 
     print("done. outputs in", outdir)
-    print("Open the gallery:", outdir / f"{run_id}_gallery.html")
+    print("Open the gallery:", gallery_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -220,8 +194,8 @@ if __name__ == "__main__":
     parser.add_argument("--prototxt", default=None)
     parser.add_argument("--caffemodel", default=None)
     parser.add_argument("--pts", default=None)
-    parser.add_argument("--l_offset", type=float, default=50.0, help="subtract value from L channel (current pipeline uses 50)")
+    parser.add_argument("--l_offset", type=float, default=80.0, help="subtract value from L channel")
     parser.add_argument("--size", nargs=2, type=int, default=[224,224], help="model input width and height")
-    parser.add_argument("--conv8_scale", type=float, default=2.606, help="value for conv8_313_rh blob (controls saturation)")
+    parser.add_argument("--conv8_scale", type=float, default=4.606, help="value for conv8_313_rh blob (controls saturation)")
     args = parser.parse_args()
     main(args)

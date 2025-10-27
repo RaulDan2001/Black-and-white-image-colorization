@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import os
-from resize import resize_folder  # Imported but not used; you can call resize_folder() if needed before processing
+from resize import resize_folder
 
 resize_folder()
 
@@ -10,7 +10,7 @@ model_path = 'models/colorization_release_v2.caffemodel'
 kernel_path = 'models/pts_in_hull.npy'
 image_folder = 'images/'
 
-# Load the model and set up points once (outside the loop)
+# Load the model and set up points
 net = cv2.dnn.readNetFromCaffe(prototxt_path, model_path)
 points = np.load(kernel_path)  # cluster center point
 points = points.transpose().reshape(2, 313, 1, 1)  # 1 by 1 convolutional kernel

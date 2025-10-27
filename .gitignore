@@ -15,4 +15,4 @@ __pycache__/
 models/
 
 # ignore the images folder
-#images/
+images/

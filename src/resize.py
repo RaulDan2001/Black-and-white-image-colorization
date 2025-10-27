@@ -6,7 +6,7 @@ def resize_folder():
     target_size = (640, 640)
 
     for filename in os.listdir(image_folder):
-        if filename.lower().endswith((".jpg")):
+        if filename.lower().endswith(('.jpg', '.jpeg', '.png')):
             file_path = os.path.join(image_folder, filename)
             temp_path = os.path.join(image_folder, f"temp_{filename}")
 

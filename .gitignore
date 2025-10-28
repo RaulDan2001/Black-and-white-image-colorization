@@ -1,7 +1,3 @@
-# ignore dotenv files
-.env
-*.env
-
 # ignore common virtualenv folders
 venv/
 .venv/
@@ -16,3 +12,9 @@ models/
 
 # ignore the images folder
 images/
+
+# ignore the dataset images
+dataset/
+
+# ignore the color images
+color images/

@@ -15,6 +15,12 @@ images/
 
 # ignore the dataset images
 dataset/
+abstracts/
+filters/
+maps/
+medical/
+texts/
 
 # ignore the color images
 color images/
+
